@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F(MUSIC)X</title>
+<style>
+:root{
+  --bg:#000; --panel:#121212; --panel2:#181818; --hover:#1f1f1f;
+  --text:#fff; --muted:#a1a1a1; --accent:#a855f7; --accent2:#ec4899;
+  --border:#222; --player:#0a0a0a;
+}
+*{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color: transparent;}
+html,body{height:100%;}
+body{
+  background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  overflow:hidden; -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit; cursor:pointer; border:none; background:none; color:inherit;}
+input{font-family:inherit;}
+::-webkit-scrollbar{width:8px;} ::-webkit-scrollbar-thumb{background:#333; border-radius:6px;}
+
+/* MOBİL İÇİN GENEL DÜZEN */
+.app{display:flex; height:calc(100vh - 90px);}
+
+/* SIDEBAR (MASAÜSTÜ) */
+.sidebar{width:240px; background:var(--bg); padding:18px 12px; display:flex; flex-direction:column; gap:4px; border-right:1px solid var(--border); flex-shrink:0;}
+.logo{font-size:22px; font-weight:900; letter-spacing:-1px; padding:6px 12px 18px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.nav-item{display:flex; align-items:center; gap:14px; padding:10px 12px; border-radius:8px; color:var(--muted); font-weight:600; font-size:14px; transition:.15s;}
+.nav-item:hover, .nav-item.active{color:#fff; background:var(--hover);}
+.nav-item svg{width:22px; height:22px; flex-shrink:0;}
+.nav-sep{height:1px; background:var(--border); margin:12px 8px;}
+.nav-title{color:var(--muted); font-size:11px; font-weight:700; letter-spacing:1.5px; padding:14px 12px 6px;}
+
+/* MAIN */
+.main{flex:1; overflow-y:auto; background:var(--panel); border-radius:12px; margin:8px 8px 0 0; position:relative;}
+.topbar{position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:16px; padding:14px 24px;
+  background:rgba(18,18,18,.85); backdrop-filter:blur(14px); border-bottom:1px solid var(--border);}
+.search-box{flex:0 0 380px; position:relative;}
+.search-box svg{position:absolute; left:14px; top:50%; transform:translateY(-50%); width:18px; height:18px; color:var(--muted);}
+.search-box input{width:100%; padding:11px 14px 11px 42px; border-radius:30px; border:1px solid transparent;
+  background:#2a2a2a; color:#fff; font-size:14px; outline:none; transition:.2s;}
+.search-box input:focus{background:#333; border-color:#555;}
+.topbar .spacer{flex:1;}
+.user-chip{display:flex; align-items:center; gap:10px; padding:5px 14px 5px 5px; background:#000; border-radius:30px; font-size:13px; font-weight:700;}
+.avatar{width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900;}
+
+#main{overflow-y:auto; height:calc(100% - 61px); padding:24px;}
+.section{margin-bottom:36px;}
+.section-head{display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:16px;}
+.section-head h2{font-size:22px; font-weight:800;}
+.section-head .sub{color:var(--muted); font-size:13px; margin-top:4px;}
+
+/* KARTLAR VE LİSTELER */
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:16px;}
+.card{background:var(--panel2); border-radius:10px; padding:12px; cursor:pointer; transition:.2s; position:relative;}
+.card:hover{background:var(--hover); transform:translateY(-2px);}
+.card .cover{aspect-ratio:1/1; border-radius:8px; margin-bottom:12px; display:flex; align-items:center; justify-content:center; font-size:34px; position:relative;}
+.card .title{font-weight:700; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.card .artist{color:var(--muted); font-size:12px; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.card .play-fab{position:absolute; bottom:14px; right:12px; width:42px; height:42px; border-radius:50%;
+  background:var(--accent); display:flex; align-items:center; justify-content:center; opacity:0; transform:translateY(8px); transition:.2s; box-shadow:0 6px 20px rgba(168,85,247,.5);}
+.card:hover .play-fab{opacity:1; transform:translateY(0);}
+
+.tracklist{display:flex; flex-direction:column;}
+.trow{display:grid; grid-template-columns:32px 1fr 1fr 90px 120px; align-items:center; gap:12px;
+  padding:9px 12px; border-radius:6px; cursor:pointer; transition:.12s; font-size:14px;}
+.trow:hover{background:var(--hover);}
+.trow .idx{color:var(--muted); text-align:center; font-size:13px;}
+.trow .tname{display:flex; align-items:center; gap:12px; min-width:0;}
+.trow .tcover{width:40px; height:40px; border-radius:5px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:16px;}
+.trow .tinfo{min-width:0;}
+.trow .tinfo .tt{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.trow .tinfo .ta{color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.trow .tgenre{color:var(--muted); font-size:12px;}
+.trow .tdur{color:var(--muted); font-size:12px; text-align:right;}
+.trow .tactions{display:flex; gap:6px; justify-content:flex-end; opacity:0; transition:.15s;}
+.trow:hover .tactions{opacity:1;}
+.ibtn{width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--muted); transition:.15s;}
+.ibtn:hover{color:#fff; background:rgba(255,255,255,.1);}
+.ibtn svg{width:16px; height:16px;}
+.ibtn.liked{color:var(--accent2);}
+.trow.playing .idx{color:var(--accent);}
+.trow.playing .tt{color:var(--accent);}
+
+.chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;}
+.chip{padding:7px 16px; border-radius:20px; background:#2a2a2a; font-size:13px; font-weight:600; color:#ddd; transition:.15s; cursor:pointer;}
+.chip:hover{background:#3a3a3a;}
+.chip.active{background:var(--accent); color:#fff;}
+
+.empty{color:var(--muted); text-align:center; padding:60px 20px; font-size:15px;}
+
+/* PLAYER */
+.player{position:fixed; bottom:0; left:0; right:0; height:90px; background:var(--player); border-top:1px solid var(--border);
+  display:grid; grid-template-columns:1fr 2fr 1fr; align-items:center; padding:0 20px; gap:20px; z-index:100;}
+.p-left{display:flex; align-items:center; gap:14px; min-width:0;}
+.p-cover{width:56px; height:56px; border-radius:6px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:22px;}
+.p-info{min-width:0;}
+.p-info .pt{font-weight:700; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.p-info .pa{color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.p-center{display:flex; flex-direction:column; align-items:center; gap:8px;}
+.p-controls{display:flex; align-items:center; gap:20px;}
+.p-btn{color:#bbb; transition:.15s; display:flex; align-items:center; justify-content:center;}
+.p-btn:hover{color:#fff;}
+.p-btn svg{width:20px; height:20px;}
+.p-play{width:40px; height:40px; border-radius:50%; background:#fff; color:#000; display:flex; align-items:center; justify-content:center; transition:.15s;}
+.p-play:hover{transform:scale(1.06);}
+.p-play svg{width:22px; height:22px;}
+.p-progress{display:flex; align-items:center; gap:10px; width:100%; max-width:600px; font-size:11px; color:var(--muted);}
+.seek{flex:1; height:4px; background:#4d4d4d; border-radius:2px; cursor:pointer; position:relative;}
+.seek .fill{height:100%; background:#fff; border-radius:2px; width:0%; transition:width .1s linear;}
+.seek:hover .fill{background:var(--accent);}
+.p-right{display:flex; align-items:center; justify-content:flex-end; gap:14px;}
+.vol{width:100px; height:4px; background:#4d4d4d; border-radius:2px; cursor:pointer; position:relative;}
+.vol .fill{height:100%; background:#fff; border-radius:2px;}
+
+/* AÇILIR PENCERE (MODAL) */
+.modal-bg{position:fixed; inset:0; background:rgba(0,0,0,.8); display:none; align-items:center; justify-content:center; z-index:200;}
+.modal-bg.show{display:flex;}
+.modal{background:#1c1c1c; border:1px solid #333; border-radius:12px; padding:24px; width:340px; max-width:90vw;}
+.modal h3{margin-bottom:16px; font-size:18px;}
+.modal .pl-list{max-height:200px; overflow-y:auto; margin-bottom:16px;}
+.modal .pl-item{padding:10px 14px; border-radius:8px; cursor:pointer; font-size:14px; display:flex; justify-content:space-between;}
+.modal .pl-item:hover{background:#2a2a2a;}
+.modal input{width:100%; padding:11px 14px; border-radius:8px; border:1px solid #333; background:#0d0d0d; color:#fff; outline:none; margin-bottom:10px;}
+.modal .btn{width:100%; padding:11px; border-radius:8px; background:var(--accent); color:#fff; font-weight:700; font-size:14px;}
+.modal .btn:hover{background:#9333ea;}
+
+.toast{position:fixed; bottom:110px; left:50%; transform:translateX(-50%) translateY(20px); background:#2a2a2a; padding:12px 22px; border-radius:30px; font-size:14px; font-weight:600; opacity:0; transition:.3s; pointer-events:none; z-index:300; border:1px solid #444;}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+/* 📱 MOBİL EKRAN DÜZELTMELERİ (Senin ekran görüntüsündeki bozukluğu çözer) */
+@media (max-width: 768px) {
+  .app { flex-direction: column; height: calc(100vh - 130px); }
+  .sidebar { 
+    width: 100%; height: 60px; flex-direction: row; position: fixed; bottom: 90px; 
+    justify-content: space-around; padding: 0; border-right: none; border-top: 1px solid var(--border); z-index: 99; 
+  }
+  .logo { display: none; }
+  .nav-title, .nav-sep { display: none; }
+  .nav-item { flex-direction: column; font-size: 10px; gap: 3px; padding: 6px; flex: 1; text-align: center; justify-content: center; border-radius: 0; }
+  .nav-item svg { width: 18px; height: 18px; }
+  .main { margin: 0; border-radius: 0; height: 100%; padding-bottom: 20px; }
+  .topbar { padding: 10px; gap: 10px; }
+  .search-box { flex: 1; }
+  .user-chip { display: none; }
+  #main { padding: 16px; height: calc(100% - 60px); }
+  
+  .trow { grid-template-columns: 24px 1fr 40px; gap: 8px; padding: 8px; }
+  .trow .tgenre, .trow .tdur { display: none; }
+  .trow .tactions { opacity: 1; }
+  
+  .player { grid-template-columns: 1fr auto; padding: 0 12px; gap: 10px; height: 80px; }
+  .p-left { gap: 10px; }
+  .p-cover { width: 44px; height: 44px; }
+  .p-info .pt { font-size: 13px; }
+  .p-info .pa { font-size: 11px; }
+  .p-center { position: fixed; bottom: 10px; right: 12px; flex-direction: row; gap: 0; }
+  .p-controls { gap: 16px; }
+  .p-progress { display: none; }
+  .p-btn#btnShuffle, .p-btn#btnRepeat { display: none; }
+  .p-right { display: none; }
+  .section-head h2 { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">F(MUSIC)X</div>
+    <div class="nav-item active" data-view="home">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/></svg>Ana Sayfa
+    </div>
+    <div class="nav-item" data-view="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Ara
+    </div>
+    <div class="nav-item" data-view="discover">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M15 9l-2 4-4 2 2-4z"/></svg>Keşfet
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-title">KÜTÜPHANE</div>
+    <div class="nav-item" data-view="liked">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.5-9.5-9C.5 8 2 4 6 4c2 0 3.5 1 4 2 0 0 1-2 4-2 4 0 5.5 4 3.5 8C19 16.5 12 21 12 21z"/></svg>Beğenilenler
+    </div>
+    <div class="nav-item" data-view="playlists">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h4v16H4zM10 4h4v16h-4zM16 4h4v16h-4z"/></svg>Listelerim
+    </div>
+    <div class="nav-item" data-view="profile">
+      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6z"/></svg>Profil
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="searchInput" type="text" placeholder="Şarkı, sanatçı veya tür ara..." />
+      </div>
+      <div class="spacer"></div>
+      <div class="user-chip"><div class="avatar">F</div>Kullanıcı</div>
+    </div>
+    <div id="main"></div>
+  </main>
+</div>
+
+<div class="player">
+  <div class="p-left">
+    <div class="p-cover" id="pCover">♪</div>
+    <div class="p-info">
+      <div class="pt" id="pTitle">Şarkı seç</div>
+      <div class="pa" id="pArtist">F(MUSIC)X</div>
+    </div>
+  </div>
+  <div class="p-center">
+    <div class="p-controls">
+      <button class="p-btn" id="btnShuffle" title="Karıştır">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 3h5v5h-2V6.4l-4.3 4.3-1.4-1.4L17.6 5H16V3zM3 5h4.5l3.5 3.5-1.4 1.4L6.9 7H3V5zm13 11l1.4-1.4L21 18.6V17h2v5h-5v-2h1.6l-3.6-3.6zM3 17h3.9l3.7-3.7 1.4 1.4L7.5 19H3v-2z"/></svg>
+      </button>
+      <button class="p-btn" id="btnPrev" title="Önceki">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 5v14l-10-7 10-7zM6 5h2v14H6V5z"/></svg>
+      </button>
+      <button class="p-play" id="btnPlay" title="Çal / Duraklat">
+        <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button class="p-btn" id="btnNext" title="Sonraki">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5l10 7-10 7V5zm12 0v14h2V5h-2z"/></svg>
+      </button>
+      <button class="p-btn" id="btnRepeat" title="Tekrar">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+      </button>
+    </div>
+    <div class="p-progress">
+      <span id="curTime">0:00</span>
+      <div class="seek" id="seekBar"><div class="fill" id="seekFill"></div></div>
+      <span id="totTime">0:00</span>
+    </div>
+  </div>
+  <div class="p-right">
+    <button class="p-btn" id="btnLike" title="Beğen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.5-9.5-9C.5 8 2 4 6 4c2 0 3.5 1 4 2 0 0 1-2 4-2 4 0 5.5 4 3.5 8C19 16.5 12 21 12 21z"/></svg>
+    </button>
+    <svg viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;color:#bbb"><path d="M3 9v6h4l5 5V4L7 9H3z"/></svg>
+    <div class="vol" id="volBar"><div class="fill" id="volFill" style="width:80%"></div></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modal"></div>
+</div>
+<div class="toast" id="toast"></div>
+<audio id="audio"></audio>
+
+<script>
+/* =========================================================
+   BURAYA KENDİ ŞARKILARINI EKLEYECEKSİN KANKA!
+   GitHub'a veya klasöre "s0rrow-party-girl.mp3" diye atarsan, 
+   url kısmına sadece dosya adını yazman yeterli. 
+   ========================================================= */
+const TRACKS = [
+  // SENİN EKLEDİĞİN GERÇEK ŞARKILAR (Dosya adlarını kendi indirdiğin mp3'lere göre değiştir)
+  {id:101,title:"Party Girl",artist:"S0rrow",genre:"Emo Pop",mood:"hüzünlü",dur:206,url:"./s0rrow-party-girl.mp3"}, 
+  {id:102,title:"Kendi İndirdiğin Şarkı",artist:"S0rrow",genre:"Emo Pop",mood:"hüzünlü",dur:210,url:"./sarki2.mp3"},
+
+  // SİSTEMİN İÇİNDEKİ HAZIR TAM SÜRÜM ŞARKILAR (Çalışan linkler)
+  {id:1,title:"S0rrow Type Beat",artist:"S0rrow",genre:"Emo Pop",mood:"hüzünlü",dur:206,url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"},
+  {id:2,title:"Paper Hearts",artist:"S0rrow",genre:"Emo Pop",mood:"hüzünlü",dur:331,url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"},
+  {id:3,title:"Midnight Call",artist:"Luna Vex",genre:"Electronic",mood:"enerjik",dur:344,url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"},
+  {id:4,title:"Neon Dreams",artist:"Luna Vex",genre:"Electronic",mood:"enerjik",dur:302,url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"},
+  {id:5,title:"Pulse",artist:"Kairo",genre:"Electronic",mood:"enerjik",dur:356,url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"},
+  {id:6,title:"Fading Light",artist:"Noa Grey",genre:"Indie",mood:"hüzünlü",dur:374,url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"},
+  {id:7,title:"Wildflower",artist:"Noa Grey",genre:"Indie",mood:"sakin",dur:348,url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"},
+  {id:8,title:"Low Tide",artist:"Vybes",genre:"Lo-fi",mood:"sakin",dur:298,url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"},
+  {id:9,title:"Ghost Town",artist:"Mirror Motel",genre:"Rock",mood:"enerjik",dur:330,url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"},
+  {id:10,title:"Silence",artist:"Solace",genre:"Ambient",mood:"sakin",dur:341,url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"},
+  {id:11,title:"Gravity",artist:"Nyx",genre:"R&B",mood:"sakin",dur:374,url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3"},
+  {id:12,title:"Tokyo Rain",artist:"Kaze",genre:"Hip-Hop",mood:"sakin",dur:206,url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"},
+  {id:13,title:"Golden Hour",artist:"Arden",genre:"Indie",mood:"sakin",dur:344,url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3"},
+  {id:14,title:"Thunder",artist:"Delta Rain",genre:"Rock",mood:"enerjik",dur:356,url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3"},
+  {id:15,title:"Rainy Window",artist:"Vybes",genre:"Lo-fi",mood:"sakin",dur:330,url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"},
+  {id:16,title:"Smoke",artist:"Nyx",genre:"R&B",mood:"sakin",dur:340,url:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"}
+];
+
+const PALETTE=[["#8b5cf6","#ec4899"],["#06b6d4","#3b82f6"],["#f59e0b","#ef4444"],["#10b981","#84cc16"],["#ec4899","#f43f5e"],["#6366f1","#8b5cf6"],["#14b8a6","#06b6d4"],["#f97316","#f59e0b"],["#d946ef","#8b5cf6"],["#22d3ee","#0ea5e9"]];
+function cover(t){const p=PALETTE[t.id%PALETTE.length];return `linear-gradient(135deg,${p[0]},${p[1]})`;}
+
+const store = {
+  liked: JSON.parse(localStorage.getItem('fmx_liked')||'[]'),
+  playlists: JSON.parse(localStorage.getItem('fmx_playlists')||'{}'),
+  playCounts: JSON.parse(localStorage.getItem('fmx_pc')||'{}'),
+  hidden: JSON.parse(localStorage.getItem('fmx_hidden')||'[]'),
+  recent: JSON.parse(localStorage.getItem('fmx_recent')||'[]')
+};
+function save(){localStorage.setItem('fmx_liked',JSON.stringify(store.liked));localStorage.setItem('fmx_playlists',JSON.stringify(store.playlists));localStorage.setItem('fmx_pc',JSON.stringify(store.playCounts));localStorage.setItem('fmx_hidden',JSON.stringify(store.hidden));localStorage.setItem('fmx_recent',JSON.stringify(store.recent));}
+
+const state = {
+  view:'home', currentId:null, queue:[], qIndex:-1,
+  isPlaying:false, shuffle:false, repeat:'off', searchQ:'', genreFilter:'all'
+};
+
+const audio = document.getElementById('audio');
+const main = document.getElementById('main');
+
+let ac;
+function sfx(type){
+  try{
+    ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.connect(g); g.connect(ac.destination);
+    const now = ac.currentTime;
+    const map = {click:[520,0.04],play:[660,0.08],pause:[380,0.07],like:[880,0.1]};
+    const [freq,dur] = map[type]||[500,0.05];
+    o.frequency.setValueAtTime(freq, now);
+    o.type='sine';
+    g.gain.setValueAtTime(0.06, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now+dur);
+    o.start(now); o.stop(now+dur);
+  }catch(e){}
+}
+
+function fmt(s){if(!s||isNaN(s))return'0:00';s=Math.floor(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+fun
